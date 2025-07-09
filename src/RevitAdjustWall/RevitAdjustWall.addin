@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Text>Adjust Wall</Text>
+    <Description>Adjusts wall gaps based on specified distance and connection rules</Description>
+    <Assembly>RevitAdjustWall.dll</Assembly>
+    <FullClassName>RevitAdjustWall.Commands.AdjustWallCommand</FullClassName>
+    <ClientId>B8C7E8F9-1A2B-3C4D-5E6F-7890ABCDEF12</ClientId>
+    <VendorId>ADSK</VendorId>
+    <VendorDescription>Your Company Name</VendorDescription>
+  </AddIn>
+</RevitAddIns>
