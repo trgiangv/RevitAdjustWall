@@ -12,8 +12,6 @@
     <AssemblyCompany>Your Company</AssemblyCompany>
     <AssemblyProduct>RevitAdjustWall</AssemblyProduct>
     <AssemblyCopyright>Copyright © 2024</AssemblyCopyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
