@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using RevitAdjustWall.Extensions;
 
 namespace RevitAdjustWall.Validation;
 
@@ -10,44 +11,41 @@ namespace RevitAdjustWall.Validation;
 public static class InputValidator
 {
     private static readonly Regex NumericRegex = new Regex(@"^[0-9]*\.?[0-9]+$", RegexOptions.Compiled);
-    private const double MIN_GAP_DISTANCE = 0.1; // Minimum 0.1mm
-    private const double MAX_GAP_DISTANCE = 10000.0; // Maximum 10 meters in mm
+    private static readonly double MinGapDistanceMm = 1.0; // Minimum 1mm
+    private static readonly double MaxGapDistanceMm = 1000.0; // Maximum 1000mm
 
     /// <summary>
     /// Validates if the input string represents a valid numeric value
     /// </summary>
     /// <param name="input">The input string to validate</param>
     /// <returns>True if the input is a valid number, false otherwise</returns>
-    public static bool IsValidNumeric(string input)
+    private static bool IsValidNumeric(string input)
     {
-        if (string.IsNullOrWhiteSpace(input))
-            return false;
-
-        return NumericRegex.IsMatch(input.Trim());
+        return !string.IsNullOrWhiteSpace(input) && NumericRegex.IsMatch(input.Trim());
     }
 
     /// <summary>
     /// Validates if the gap distance is within acceptable range
     /// </summary>
-    /// <param name="gapDistance">The gap distance in millimeters</param>
+    /// <param name="gapDistanceMm">The gap distance in millimeters</param>
     /// <returns>True if the gap distance is valid, false otherwise</returns>
-    public static bool IsValidGapDistance(double gapDistance)
+    private static bool IsValidGapDistance(double gapDistanceMm)
     {
-        return gapDistance >= MIN_GAP_DISTANCE && 
-               gapDistance <= MAX_GAP_DISTANCE && 
-               !double.IsNaN(gapDistance) && 
-               !double.IsInfinity(gapDistance);
+        return gapDistanceMm >= MinGapDistanceMm &&
+               gapDistanceMm <= MaxGapDistanceMm &&
+               !double.IsNaN(gapDistanceMm) &&
+               !double.IsInfinity(gapDistanceMm);
     }
 
     /// <summary>
     /// Tries to parse the input string as a valid gap distance
     /// </summary>
-    /// <param name="input">The input string to parse</param>
-    /// <param name="gapDistance">The parsed gap distance if successful</param>
+    /// <param name="input">The input string to parse (in millimeters)</param>
+    /// <param name="gapDistanceInFeet">The parsed gap distance in Revit internal units (feet)</param>
     /// <returns>True if parsing was successful and value is valid, false otherwise</returns>
-    public static bool TryParseGapDistance(string input, out double gapDistance)
+    public static bool TryParseGapDistance(string input, out double gapDistanceInFeet)
     {
-        gapDistance = 0.0;
+        gapDistanceInFeet = 0.0;
 
         if (string.IsNullOrWhiteSpace(input))
             return false;
@@ -61,15 +59,18 @@ public static class InputValidator
         if (!IsValidNumeric(normalizedInput))
             return false;
 
-        if (!double.TryParse(normalizedInput, NumberStyles.Float, CultureInfo.InvariantCulture, out gapDistance))
+        if (!double.TryParse(normalizedInput, NumberStyles.Float, CultureInfo.InvariantCulture, out var gapDistanceMm))
             return false;
 
-        if (!IsValidGapDistance(gapDistance))
+        // Validate the millimeter value first
+        if (!IsValidGapDistance(gapDistanceMm))
         {
-            gapDistance = 0.0; // Reset to 0 if validation fails
+            gapDistanceInFeet = 0.0;
             return false;
         }
 
+        // Convert to Revit internal units (feet)
+        gapDistanceInFeet = gapDistanceMm.FromMillimeters();
         return true;
     }
 
@@ -86,69 +87,18 @@ public static class InputValidator
         if (!IsValidNumeric(input))
             return "Gap distance must be a valid number.";
 
-        if (double.TryParse(input.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
-        {
-            if (value < MIN_GAP_DISTANCE)
-                return $"Gap distance must be at least {MIN_GAP_DISTANCE} mm.";
+        if (!double.TryParse(input.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            return "Invalid gap distance value.";
 
-            if (value > MAX_GAP_DISTANCE)
-                return $"Gap distance cannot exceed {MAX_GAP_DISTANCE} mm.";
+        if (value < MinGapDistanceMm)
+            return $"Gap distance must be at least {MinGapDistanceMm} mm.";
 
-            if (double.IsNaN(value) || double.IsInfinity(value))
-                return "Gap distance must be a finite number.";
-        }
+        if (value > MaxGapDistanceMm)
+            return $"Gap distance cannot exceed {MaxGapDistanceMm} mm.";
+
+        if (double.IsNaN(value) || double.IsInfinity(value))
+            return "Gap distance must be a finite number.";
 
         return "Invalid gap distance value.";
-    }
-
-    /// <summary>
-    /// Validates if a character is allowed for numeric input
-    /// </summary>
-    /// <param name="character">The character to validate</param>
-    /// <param name="currentText">The current text in the input field</param>
-    /// <returns>True if the character is allowed, false otherwise</returns>
-    public static bool IsValidNumericCharacter(char character, string currentText)
-    {
-        // Allow digits
-        if (char.IsDigit(character))
-            return true;
-
-        // Allow decimal point only if there isn't one already
-        if (character == '.' || character == ',')
-        {
-            return !currentText.Contains(".") && !currentText.Contains(",");
-        }
-
-        // Allow control characters (backspace, delete, etc.)
-        if (char.IsControl(character))
-            return true;
-
-        return false;
-    }
-
-    /// <summary>
-    /// Sanitizes numeric input by removing invalid characters
-    /// </summary>
-    /// <param name="input">The input string to sanitize</param>
-    /// <returns>Sanitized input string</returns>
-    public static string SanitizeNumericInput(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return string.Empty;
-
-        // Replace comma with dot for decimal separator
-        input = input.Replace(',', '.');
-
-        // Remove all non-numeric characters except decimal point
-        var sanitized = Regex.Replace(input, @"[^0-9.]", "");
-
-        // Ensure only one decimal point
-        var parts = sanitized.Split('.');
-        if (parts.Length > 2)
-        {
-            sanitized = parts[0] + "." + string.Join("", parts, 1, parts.Length - 1);
-        }
-
-        return sanitized;
     }
 }

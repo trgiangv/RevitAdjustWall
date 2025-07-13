@@ -1,17 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Nullable>enable</Nullable>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <UseWindowsForms>false</UseWindowsForms>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Deterministic>false</Deterministic>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AssemblyTitle>RevitAdjustWall</AssemblyTitle>
     <AssemblyDescription>Revit Add-in for adjusting wall gaps</AssemblyDescription>
     <AssemblyConfiguration>Release</AssemblyConfiguration>
-    <AssemblyCompany>Your Company</AssemblyCompany>
+    <AssemblyCompany>GiangVu</AssemblyCompany>
     <AssemblyProduct>RevitAdjustWall</AssemblyProduct>
-    <AssemblyCopyright>Copyright © 2024</AssemblyCopyright>
+    <AssemblyCopyright>Copyright © 2025</AssemblyCopyright>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -36,18 +35,5 @@
   <ItemGroup>
     <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2025.*" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Tests\**" />
-    <Compile Remove="RevitAdjustWall.Tests\**" />
-    <EmbeddedResource Remove="Tests\**" />
-    <EmbeddedResource Remove="RevitAdjustWall.Tests\**" />
-    <None Remove="Tests\**" />
-    <None Remove="RevitAdjustWall.Tests\**" />
-    <Page Remove="Tests\**" />
-    <Page Remove="RevitAdjustWall.Tests\**" />
-  </ItemGroup>
-
-
 
 </Project>

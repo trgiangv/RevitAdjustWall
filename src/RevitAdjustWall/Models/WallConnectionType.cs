@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace RevitAdjustWall.Models;
 
 /// <summary>
@@ -28,34 +26,10 @@ public enum WallConnectionType
     /// Three walls connected at a single point: two walls are aligned inline,
     /// and the third wall connects perpendicularly at the joint between the other two
     /// </summary>
-    TriShape
-}
-
-/// <summary>
-/// Represents a wall connection point with its type and related walls
-/// </summary>
-public class WallConnection
-{
+    TriShape,
+    
     /// <summary>
-    /// Gets or sets the type of wall connection
+    /// No connection type detected
     /// </summary>
-    public WallConnectionType ConnectionType { get; set; }
-
-    /// <summary>
-    /// Gets or sets the walls involved in this connection
-    /// </summary>
-    public List<Autodesk.Revit.DB.Wall> ConnectedWalls { get; set; }
-
-    /// <summary>
-    /// Gets or sets the connection point in 3D space
-    /// </summary>
-    public Autodesk.Revit.DB.XYZ ConnectionPoint { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the WallConnection class
-    /// </summary>
-    public WallConnection()
-    {
-        ConnectedWalls = new List<Autodesk.Revit.DB.Wall>();
-    }
+    None
 }
