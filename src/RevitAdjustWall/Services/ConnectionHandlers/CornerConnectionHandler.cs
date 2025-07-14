@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using Autodesk.Revit.DB;
 using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
@@ -35,24 +36,18 @@ public class CornerConnectionHandler : BaseConnectionHandler
             return false;
         }
         
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
+        var line1 = GetWallLine(wall1)!;
+        var line2 = GetWallLine(wall2)!;
         
         var wall1Thickness = GetWallThickness(wall1);
         var wall2Thickness = GetWallThickness(wall2);
         
-        var connectionPoint = FindConnectionPoint(walls);
-        var nearestEndpoint1 = GetClosestEndpoint(wall1, connectionPoint);
-        var nearestEndpoint2 = GetClosestEndpoint(wall2, connectionPoint);
+        var connectionPoint = FindConnectionPoint(walls)!;
+        var nearestEndpoint1 = GetClosestEndpoint(line1, connectionPoint)!;
+        var nearestEndpoint2 = GetClosestEndpoint(line2, connectionPoint)!;
         
-        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint!, line1!);
-        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint!, line2!);
-
-        if (nearestEndpoint1 == null || nearestEndpoint2 == null)
-        {
-            foundConnectionPoint = null;
-            return false;
-        }
+        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint, line1);
+        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint, line2);
         
         // Check if the nearest endpoints are within the thickness of the other wall
         var distance1 = nearestEndpoint1.DistanceTo(connectionPoint);
@@ -62,7 +57,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall1Valid;
         if (isConnectionPointInsideLine1)
         {
-            isWall1Valid = distance1 < wall2Thickness / 2;
+            isWall1Valid = Math.Round(wall2Thickness / 2 - distance1) > 1e-6;
         }
         else
         {
@@ -72,7 +67,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall2Valid;
         if (isConnectionPointInsideLine2)
         {
-            isWall2Valid = distance2 < wall1Thickness / 2;
+            isWall2Valid = Math.Round(wall1Thickness / 2 - distance2) > 1e-6;
         }
         else
         {

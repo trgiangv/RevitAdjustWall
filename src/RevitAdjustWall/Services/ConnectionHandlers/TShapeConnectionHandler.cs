@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Autodesk.Revit.DB;
+using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
 
 namespace RevitAdjustWall.Services.ConnectionHandlers;
@@ -27,15 +29,16 @@ public class TShapeConnectionHandler : BaseConnectionHandler
 
         var wall1 = walls[0];
         var wall2 = walls[1];
+        
+                
+        var line1 = GetWallLine(wall1)!;
+        var line2 = GetWallLine(wall2)!;
 
-        if (!AreWallsPerpendicular(wall1, wall2))
+        if (!line1.Direction.IsPerpendicular(line2.Direction))
         {
             foundConnectionPoint = null;
             return false;
         }
-        
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
         
         var connectionPoint = FindConnectionPoint(walls);
         
@@ -52,8 +55,9 @@ public class TShapeConnectionHandler : BaseConnectionHandler
         // continue check if one of the walls is longer than the other than haft thickness of the other wall -> Cross
         var crossWall = isConnectionPointInsideLine1 ? wall2 : wall1;
         var mainWall = isConnectionPointInsideLine1 ? wall1 : wall2;
+        var crossLine = GetWallLine(crossWall)!;
         
-        var crossEndPoint = GetClosestEndpoint(crossWall, connectionPoint!);
+        var crossEndPoint = GetClosestEndpoint(crossLine, connectionPoint!);
         var crossWallLength = crossEndPoint!.DistanceTo(connectionPoint!);
         var halfMainWallThickness = GetWallThickness(mainWall) / 2.0;
         

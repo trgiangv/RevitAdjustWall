@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Autodesk.Revit.DB;
 using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
@@ -137,7 +136,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
         return line1.Intersection(line2) ?? line1.Intersection(line3);
     }
 
-    private static bool AreLinesInline(Line line1, Line line2)
+    protected static bool AreLinesInline(Line line1, Line line2)
     {
         var dir1 = line1.Direction.Normalize();
         var dir2 = line2.Direction.Normalize();
@@ -156,10 +155,9 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Gets the endpoint of a wall that is closest to the connection point
     /// </summary>
-    protected static XYZ? GetClosestEndpoint(Wall wall, XYZ? connectionPoint)
+    protected static XYZ? GetClosestEndpoint(Line line, XYZ? connectionPoint)
     {
-        var line = GetWallLine(wall);
-        if (line == null || connectionPoint == null) return null;
+        if (connectionPoint == null) return null;
 
         var start = line.GetEndPoint(0);
         var end = line.GetEndPoint(1);

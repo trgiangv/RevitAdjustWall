@@ -82,46 +82,4 @@ public static class XyzExtensions
         var dotProduct = vector1.Normalize().DotProduct(vector2.Normalize());
         return dotProduct > (1.0 - tolerance);
     }
-
-    /// <summary>
-    /// Checks if two vectors point in opposite directions (parallel but opposite orientation).
-    /// </summary>
-    /// <param name="vector1">The first vector.</param>
-    /// <param name="vector2">The second vector.</param>
-    /// <param name="tolerance">The tolerance for parallel checking (default: 1e-9).</param>
-    /// <returns>True if vectors are parallel and point in opposite directions.</returns>
-    public static bool IsOppositeDirection(this XYZ vector1, XYZ vector2, double tolerance = 1e-9)
-    {
-        if (!vector1.IsParallel(vector2, tolerance)) return false;
-        var dotProduct = vector1.Normalize().DotProduct(vector2.Normalize());
-        return dotProduct < -(1.0 - tolerance);
-    }
-
-    /// <summary>
-    /// Calculates the angle between two vectors in radians.
-    /// </summary>
-    /// <param name="vector1">The first vector.</param>
-    /// <param name="vector2">The second vector.</param>
-    /// <returns>The angle between the vectors in radians (0 to π).</returns>
-    public static double Angle(this XYZ vector1, XYZ vector2)
-    {
-        var v1Normalized = vector1.Normalize();
-        var v2Normalized = vector2.Normalize();
-        
-        return v1Normalized.AngleTo(v2Normalized);
-    }
-    
-    /// <summary>
-    /// Calculates the angle between two vectors in radians.
-    /// </summary>
-    /// <param name="vector1">The first vector.</param>
-    /// <param name="vector2">The second vector.</param>
-    /// <returns>The angle between the vectors on a plane defined by the planeNormal vector (0 to 2π).</returns>
-    public static double Angle(this XYZ vector1, XYZ vector2, XYZ planeNormal)
-    {
-        var v1Normalized = vector1.Normalize();
-        var v2Normalized = vector2.Normalize();
-
-        return v1Normalized.AngleOnPlaneTo(v2Normalized, planeNormal);
-    }
 }

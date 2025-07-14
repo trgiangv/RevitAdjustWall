@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Autodesk.Revit.DB;
+using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
 
 namespace RevitAdjustWall.Services.ConnectionHandlers;
@@ -40,9 +42,9 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
             return false;
         }
         
-        var walls12Parallel = AreWallsParallel(wall1, wall2);
-        var walls13Parallel = AreWallsParallel(wall1, wall3);
-        var walls23Parallel = AreWallsParallel(wall2, wall3);
+        var walls12Parallel = AreLinesInline(line1, line2);
+        var walls13Parallel = AreLinesInline(line1, line3);
+        var walls23Parallel = AreLinesInline(line2, line3);
 
         // Count parallel pairs - should be exactly 1 for valid Tri-Shape
         var parallelPairCount = (walls12Parallel ? 1 : 0) +
@@ -73,7 +75,7 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
             crossWall = wall1;
         }
         
-        if (!AreWallsPerpendicular(crossWall, inlineWall1))
+        if (!GetWallLine(crossWall)?.Direction.IsPerpendicular(GetWallLine(inlineWall1)!.Direction) ?? false)
         {
             return false;
         }
@@ -98,9 +100,9 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
         if (line1 == null || line2 == null || line3 == null)
             return adjustmentData;
         
-        var walls12Inline = AreWallsParallel(wall1, wall2);
-        var walls13Inline = AreWallsParallel(wall1, wall3);
-        var walls23Inline = AreWallsParallel(wall2, wall3);
+        var walls12Inline = line1.Direction.IsParallel(line2.Direction);
+        var walls13Inline = line1.Direction.IsParallel(line3.Direction);
+        var walls23Inline = line2.Direction.IsParallel(line3.Direction);
 
         Wall crossWall;
         Wall inlineWall1, inlineWall2;

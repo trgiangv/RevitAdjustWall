@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -66,7 +65,7 @@ public class WallAdjustmentViewModel : BaseViewModel
         _validationErrorMessage = string.Empty;
 
         PickWallsCommand = new RelayCommand(ExecutePickWall, CanExecutePickWall);
-        // ValidateAndUpdateGapDistance();
+        ValidateAndUpdateGapDistance();
     }
 
     /// <summary>
