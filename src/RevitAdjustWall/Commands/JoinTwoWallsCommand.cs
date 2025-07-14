@@ -5,9 +5,7 @@ using Autodesk.Revit.UI.Selection;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Services.ConnectionHandlers;
-using RevitAdjustWall.Utilities;
 
 namespace RevitAdjustWall.Commands;
 

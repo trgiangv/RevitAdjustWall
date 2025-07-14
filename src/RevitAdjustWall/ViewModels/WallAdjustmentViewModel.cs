@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -107,6 +108,7 @@ public class WallAdjustmentViewModel : BaseViewModel
             {
                 var walls = elements.Cast<Wall>().ToList();
                 var connection = _connectionFactory.AnalyzeConnection(walls);
+                Trace.TraceInformation(connection.ConnectionType.ToString());
 
                 if (!connection.IsValid())
                 {

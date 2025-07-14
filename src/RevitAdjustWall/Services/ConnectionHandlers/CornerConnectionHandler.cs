@@ -38,7 +38,6 @@ public class CornerConnectionHandler : BaseConnectionHandler
         var line1 = GetWallLine(wall1);
         var line2 = GetWallLine(wall2);
         
-        var gapDistance = 10.0.FromMillimeters();
         var wall1Thickness = GetWallThickness(wall1);
         var wall2Thickness = GetWallThickness(wall2);
         
@@ -46,8 +45,8 @@ public class CornerConnectionHandler : BaseConnectionHandler
         var nearestEndpoint1 = GetClosestEndpoint(wall1, connectionPoint);
         var nearestEndpoint2 = GetClosestEndpoint(wall2, connectionPoint);
         
-        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint!, line1!, gapDistance);
-        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint!, line2!, gapDistance);
+        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint!, line1!);
+        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint!, line2!);
 
         if (nearestEndpoint1 == null || nearestEndpoint2 == null)
         {
@@ -59,12 +58,11 @@ public class CornerConnectionHandler : BaseConnectionHandler
         var distance1 = nearestEndpoint1.DistanceTo(connectionPoint);
         var distance2 = nearestEndpoint2.DistanceTo(connectionPoint);
         
-        foundConnectionPoint = connectionPoint;
-
+        // if connection point is on line1, then wall1 is valid if distance is within half the thickness of wall2
         bool isWall1Valid;
         if (isConnectionPointInsideLine1)
         {
-            isWall1Valid = distance1 < wall2Thickness;
+            isWall1Valid = distance1 < wall2Thickness / 2;
         }
         else
         {
@@ -74,13 +72,14 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall2Valid;
         if (isConnectionPointInsideLine2)
         {
-            isWall2Valid = distance2 < wall1Thickness;
+            isWall2Valid = distance2 < wall1Thickness / 2;
         }
         else
         {
             isWall2Valid = true;
         }
         
+        foundConnectionPoint = connectionPoint;
         return isWall1Valid && isWall2Valid;
     }
     

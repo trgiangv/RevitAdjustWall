@@ -214,8 +214,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
         var dot = pointVec.DotProduct(lineVec);
         return !(dot < -tolerance) && !(dot > lineVec.DotProduct(lineVec) + tolerance);
     }
-
-
+    
     /// <summary>
     /// Gets the wall thickness at the connection point
     /// </summary>

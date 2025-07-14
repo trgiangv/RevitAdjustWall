@@ -23,9 +23,9 @@ public class ConnectionFactory
         _handlers =
         [
             new CornerConnectionHandler(),
+            new TShapeConnectionHandler(),
             new TriShapeConnectionHandler(),
             new InlineConnectionHandler(),
-            new TShapeConnectionHandler()
         ];
     }
     
