@@ -38,14 +38,6 @@ public class TShapeConnectionHandler : BaseConnectionHandler
         var line2 = GetWallLine(wall2);
         
         var connectionPoint = FindConnectionPoint(walls);
-        var nearestEndpoint1 = GetClosestEndpoint(wall1, connectionPoint);
-        var nearestEndpoint2 = GetClosestEndpoint(wall2, connectionPoint);
-
-        if (nearestEndpoint1 == null || nearestEndpoint2 == null)
-        {
-            foundConnectionPoint = null;
-            return false;
-        }
         
         var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint!, line1!);
         var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint!, line2!);
@@ -84,50 +76,20 @@ public class TShapeConnectionHandler : BaseConnectionHandler
         var wall1 = walls[0];
         var wall2 = walls[1];
 
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-
-        if (line1 == null || line2 == null)
-            return adjustmentData;
-
-        // Get wall thicknesses
-        var wall1Thickness = GetWallThickness(wall1);
-        var wall2Thickness = GetWallThickness(wall2);
+        var line1 = GetWallLine(wall1)!;
+        var line2 = GetWallLine(wall2)!;
+        
 
         // Determine which wall is the "main" wall (has connection point on its line)
         // and which is the "connecting" wall (connects to the main wall)
         var isConnectionOnLine1 = IsPointOnLine(connectionPoint, line1);
         var isConnectionOnLine2 = IsPointOnLine(connectionPoint, line2);
 
-        Wall mainWall, connectingWall;
-        Line mainLine, connectingLine;
-        double mainThickness;
+        var crossWall = isConnectionOnLine1 ? wall2 : wall1;
+        var mainWall = isConnectionOnLine2 ? wall1 : wall2;
+        var mainLine = isConnectionOnLine1 ? line1 : line2;
+        var crossLine = isConnectionOnLine1 ? line2 : line1;
 
-        if (isConnectionOnLine1 && !isConnectionOnLine2)
-        {
-            // Wall1 is main wall, Wall2 connects to it
-            mainWall = wall1;
-            connectingWall = wall2;
-            mainLine = line1;
-            connectingLine = line2;
-            mainThickness = wall1Thickness;
-        }
-        else if (isConnectionOnLine2 && !isConnectionOnLine1)
-        {
-            // Wall2 is main wall, Wall1 connects to it
-            mainWall = wall2;
-            connectingWall = wall1;
-            mainLine = line2;
-            connectingLine = line1;
-            mainThickness = wall2Thickness;
-        }
-        else
-        {
-            // Fallback: treat as corner connection if T-Shape detection fails
-            adjustmentData[wall1] = PushBackWall(line1, -wall2Thickness / 2 - gapDistance);
-            adjustmentData[wall2] = PushBackWall(line2, wall1Thickness / 2);
-            return adjustmentData;
-        }
 
         // For T-Shape connections:
         // 1. Main wall: keep unchanged (no modification needed)
@@ -137,12 +99,12 @@ public class TShapeConnectionHandler : BaseConnectionHandler
         adjustmentData[mainWall] = mainLine;
 
         // Cross wall adjustment: maintain gap from main wall
-        var connectingWallAdjustment = PushBackWall(connectingLine, mainThickness / 2 + gapDistance);
-        adjustmentData[connectingWall] = connectingWallAdjustment;
+        var connectingWallAdjustment = PushBack(crossLine, GetWallThickness(mainWall) / 2 + gapDistance);
+        adjustmentData[crossWall] = connectingWallAdjustment;
 
         return adjustmentData;
         
-        Line PushBackWall(Line wallLine,  double adjustmentDistance)
+        Line PushBack(Line wallLine, double adjustmentDistance)
         {
             var p0 = wallLine.GetEndPoint(0);
             var p1 = wallLine.GetEndPoint(1);

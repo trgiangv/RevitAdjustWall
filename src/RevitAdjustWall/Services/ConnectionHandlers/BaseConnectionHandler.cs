@@ -45,7 +45,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Calculates the angle between two wall directions
     /// </summary>
-    protected static double GetAngleBetweenWalls(Wall wall1, Wall wall2)
+    private static double GetAngleBetweenWalls(Wall wall1, Wall wall2)
     {
         var line1 = GetWallLine(wall1);
         var line2 = GetWallLine(wall2);
@@ -167,36 +167,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
         return start.DistanceTo(connectionPoint) <= end.DistanceTo(connectionPoint) ? start : end;
     }
 
-    /// <summary>
-    /// Gets the endpoint of a wall that is farthest from the connection point
-    /// </summary>
-    protected static XYZ GetFarthestEndpoint(Wall wall, XYZ connectionPoint)
-    {
-        var line = GetWallLine(wall);
-        if (line == null) return connectionPoint;
-
-        var start = line.GetEndPoint(0);
-        var end = line.GetEndPoint(1);
-
-        return start.DistanceTo(connectionPoint) > end.DistanceTo(connectionPoint) ? start : end;
-    }
-
-    /// <summary>
-    /// Checks if a wall endpoint is at the connection point within tolerance
-    /// </summary>
-    protected static bool IsEndpointAtConnection(Wall wall, XYZ connectionPoint, double tolerance)
-    {
-        var line = GetWallLine(wall);
-        if (line == null) return false;
-
-        var start = line.GetEndPoint(0);
-        var end = line.GetEndPoint(1);
-
-        return start.DistanceTo(connectionPoint) <= tolerance ||
-               end.DistanceTo(connectionPoint) <= tolerance;
-    }
-    
-    public static bool IsPointOnLine(XYZ point, Line line, double tolerance = 1e-6)
+    protected static bool IsPointOnLine(XYZ point, Line line, double tolerance = 1e-6)
     {
         var start = line.GetEndPoint(0);
         var end = line.GetEndPoint(1);
@@ -221,37 +192,5 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     protected static double GetWallThickness(Wall wall)
     {
         return wall.Width;
-    }
-
-    /// <summary>
-    /// Calculates the distance from connection point to the far end of a wall
-    /// </summary>
-    protected static double GetWallLengthFromConnection(Wall wall, XYZ connectionPoint)
-    {
-        var farthestPoint = GetFarthestEndpoint(wall, connectionPoint);
-        return connectionPoint.DistanceTo(farthestPoint);
-    }
-
-    /// <summary>
-    /// Adjusts a wall endpoint that's at the connection point by moving it away
-    /// </summary>
-    protected static (XYZ StartPoint, XYZ EndPoint) AdjustWallEndpoint(Wall wall, XYZ connectionPoint, double gapDistance)
-    {
-        var line = GetWallLine(wall);
-        if (line == null)
-            return (line?.GetEndPoint(0) ?? connectionPoint, line?.GetEndPoint(1) ?? connectionPoint);
-
-        var start = line.GetEndPoint(0);
-        var end = line.GetEndPoint(1);
-        var direction = line.Direction;
-
-        // Start point is at connection, move it away
-        var newStart = start + direction * gapDistance;
-
-        // End point is at connection, move it away
-        var newEnd = end - direction * gapDistance;
-        
-
-        return (newStart, newEnd);
     }
 }

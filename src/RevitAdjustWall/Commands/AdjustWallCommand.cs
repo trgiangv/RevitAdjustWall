@@ -11,7 +11,7 @@ namespace RevitAdjustWall.Commands;
 [Regeneration(RegenerationOption.Manual)]
 public class AdjustWallCommand : IExternalCommand
 {
-    public static UIApplication Uiapp = null!;
+    public static UIApplication Uiapp { get; private set; } = null!;
 
     /// <summary>
     /// Static reference to active UIDocument
@@ -23,10 +23,16 @@ public class AdjustWallCommand : IExternalCommand
     /// </summary>
     public static Document? Doc => Uidoc?.Document;
     
+    /// <summary>
+    /// Static reference to external event handler
+    /// </summary>
+    public static ExternalEventHandler? ExternalEventHandler { get; private set; }
+    
     public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
     {
         try
         {
+            ExternalEventHandler = new ExternalEventHandler();
             Uiapp = commandData.Application;
 
             var viewModel = new WallAdjustmentViewModel();

@@ -20,6 +20,7 @@ public class ConnectionFactory
     /// </summary>
     public ConnectionFactory()
     {
+        // Priority order: Corner, T-Shape, Tri-Shape, Inline
         _handlers =
         [
             new CornerConnectionHandler(),

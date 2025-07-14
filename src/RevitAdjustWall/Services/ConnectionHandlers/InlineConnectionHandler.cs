@@ -29,31 +29,14 @@ public class InlineConnectionHandler : BaseConnectionHandler
         var wall1 = walls[0];
         var wall2 = walls[1];
 
-        if (!AreWallsPerpendicular(wall1, wall2))
+        if (!AreWallsParallel(wall1, wall2))
         {
             foundConnectionPoint = null;
             return false;
         }
         
-        var wall1Thickness = GetWallThickness(wall1);
-        var wall2Thickness = GetWallThickness(wall2);
-        
-        var connectionPoint = FindConnectionPoint(walls);
-        var nearestEndpoint1 = GetClosestEndpoint(wall1, connectionPoint);
-        var nearestEndpoint2 = GetClosestEndpoint(wall2, connectionPoint);
-
-        if (nearestEndpoint1 == null || nearestEndpoint2 == null)
-        {
-            foundConnectionPoint = null;
-            return false;
-            
-        }
-        
-        var distance1 = nearestEndpoint1.DistanceTo(connectionPoint);
-        var distance2 = nearestEndpoint2.DistanceTo(connectionPoint);
-        
-        foundConnectionPoint = connectionPoint;
-        return distance1 < wall2Thickness || distance2 < wall1Thickness;
+        foundConnectionPoint = FindConnectionPoint(walls);
+        return true;
     }
     
     public override Dictionary<Wall, Line> CalculateAdjustment(

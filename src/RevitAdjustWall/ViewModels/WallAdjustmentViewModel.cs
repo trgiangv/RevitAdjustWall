@@ -18,14 +18,12 @@ namespace RevitAdjustWall.ViewModels;
 /// </summary>
 public class WallAdjustmentViewModel : BaseViewModel
 {
-    private readonly ExternalEventHandler _externalEventHandler;
     private readonly ConnectionFactory _connectionFactory;
     private readonly WallSelectionFilter _selectionFilter = new();
 
     private string _gapDistanceText;
     private double _gapDistance;
     private string _validationErrorMessage;
-    private Window _parentWindow = null!;
     
     public string GapDistanceText
     {
@@ -61,7 +59,6 @@ public class WallAdjustmentViewModel : BaseViewModel
 
     public WallAdjustmentViewModel()
     {
-        _externalEventHandler = new ExternalEventHandler();
         _connectionFactory = new ConnectionFactory();
 
         _gapDistanceText = "20";
@@ -69,7 +66,7 @@ public class WallAdjustmentViewModel : BaseViewModel
         _validationErrorMessage = string.Empty;
 
         PickWallsCommand = new RelayCommand(ExecutePickWall, CanExecutePickWall);
-        ValidateAndUpdateGapDistance();
+        // ValidateAndUpdateGapDistance();
     }
 
     /// <summary>
@@ -104,7 +101,7 @@ public class WallAdjustmentViewModel : BaseViewModel
             var elements = AdjustWallCommand.Uidoc!.Selection.PickElementsByRectangle(
                 _selectionFilter, "Select walls (or press Esc to finish)");
             
-            _externalEventHandler.Raise(uiapp =>
+            AdjustWallCommand.ExternalEventHandler?.Raise(uiapp =>
             {
                 var walls = elements.Cast<Wall>().ToList();
                 var connection = _connectionFactory.AnalyzeConnection(walls);
