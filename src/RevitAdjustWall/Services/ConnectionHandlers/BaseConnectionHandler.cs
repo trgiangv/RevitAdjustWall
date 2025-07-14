@@ -31,7 +31,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Calculates new wall endpoints based on gap distance for this connection type
     /// </summary>
-    public abstract Dictionary<Wall, WallExtend> CalculateAdjustment(
+    public abstract Dictionary<Wall, Line> CalculateAdjustment(
         List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance);
     
     /// <summary>

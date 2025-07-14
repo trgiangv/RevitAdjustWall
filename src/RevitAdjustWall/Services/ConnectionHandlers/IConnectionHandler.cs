@@ -31,6 +31,6 @@ public interface IConnectionHandler
     /// <param name="connectionType">The connection type</param>
     /// <param name="gapDistance">The gap distance in feet</param>
     /// <returns>Dictionary of walls and their new endpoints</returns>
-    Dictionary<Wall, WallExtend> CalculateAdjustment(
+    Dictionary<Wall, Line> CalculateAdjustment(
         List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance);
 }

@@ -41,9 +41,12 @@ public class WallConnection
     /// <returns>True if the connection is valid</returns>
     public bool IsValid()
     {
-        return ConnectedWalls.Count is >= MinWallsForConnection and <= MaxWallsForConnection
-               && ConnectedWalls.All(w => w.Location is LocationCurve { Curve: Line })
-               && ConnectionType != WallConnectionType.None;
+        var number = ConnectedWalls.Count is >= MinWallsForConnection and <= MaxWallsForConnection;
+        var areLines = ConnectedWalls.All(w => w.Location is LocationCurve { Curve: Line });
+        var hasConnectionType = ConnectionType != WallConnectionType.None;
+        Debug.WriteLine($"WallConnection.IsValid: {number} && {areLines} && {hasConnectionType}");
+
+        return number && areLines && hasConnectionType;
     }
 
     public void ApplyAdjustments(double gapDistance)
@@ -54,7 +57,7 @@ public class WallConnection
         foreach (var wallExtend in wallExtendData)
         {
             Trace.TraceInformation(wallExtend.Key.Name);
-            wallExtend.Key.SetLocation(wallExtend.Value.NewLocation);
+            wallExtend.Key.SetLocation(wallExtend.Value);
         }
     }
 }

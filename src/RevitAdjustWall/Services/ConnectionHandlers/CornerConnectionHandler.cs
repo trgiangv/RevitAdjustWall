@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Autodesk.Revit.DB;
+using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
 
 namespace RevitAdjustWall.Services.ConnectionHandlers;
@@ -35,18 +35,24 @@ public class CornerConnectionHandler : BaseConnectionHandler
             return false;
         }
         
+        var line1 = GetWallLine(wall1);
+        var line2 = GetWallLine(wall2);
+        
+        var gapDistance = 10.0.FromMillimeters();
         var wall1Thickness = GetWallThickness(wall1);
         var wall2Thickness = GetWallThickness(wall2);
         
         var connectionPoint = FindConnectionPoint(walls);
         var nearestEndpoint1 = GetClosestEndpoint(wall1, connectionPoint);
         var nearestEndpoint2 = GetClosestEndpoint(wall2, connectionPoint);
+        
+        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint!, line1!, gapDistance);
+        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint!, line2!, gapDistance);
 
         if (nearestEndpoint1 == null || nearestEndpoint2 == null)
         {
             foundConnectionPoint = null;
             return false;
-            
         }
         
         // Check if the nearest endpoints are within the thickness of the other wall
@@ -54,45 +60,65 @@ public class CornerConnectionHandler : BaseConnectionHandler
         var distance2 = nearestEndpoint2.DistanceTo(connectionPoint);
         
         foundConnectionPoint = connectionPoint;
-        return distance1 < wall2Thickness || distance2 < wall1Thickness;
+
+        bool isWall1Valid;
+        if (isConnectionPointInsideLine1)
+        {
+            isWall1Valid = distance1 < wall2Thickness;
+        }
+        else
+        {
+            isWall1Valid = true;
+        }
+        
+        bool isWall2Valid;
+        if (isConnectionPointInsideLine2)
+        {
+            isWall2Valid = distance2 < wall1Thickness;
+        }
+        else
+        {
+            isWall2Valid = true;
+        }
+        
+        return isWall1Valid && isWall2Valid;
     }
     
-    public override Dictionary<Wall, WallExtend> CalculateAdjustment(
-        List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance)
+    public override Dictionary<Wall, Line> CalculateAdjustment(
+        List<Wall> walls,
+        XYZ connectionPoint,
+        WallConnectionType connectionType,
+        double gapDistance
+    )
     {
-        var adjustmentData = new Dictionary<Wall, WallExtend>();
-        
-        var wall1 = walls[0];
-        var wall2 = walls[1];
+        var output = new Dictionary<Wall, Line>();
 
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
+        var w1 = walls[0];
+        var w2 = walls[1];
 
-        var extend1 = new WallExtend();
-        var extend2 = new WallExtend();
+        var c1 = GetWallLine(w1);
+        var c2 = GetWallLine(w2);
+        if (c1 == null || c2 == null) return output;
         
+        var t1Half = GetWallThickness(w1) / 2.0;
+        var t2Half = GetWallThickness(w2) / 2.0;
+
+        output[w1] = PushBack(c1, - t2Half - gapDistance);
+        output[w2] = PushBack(c2, t1Half);
+
+        return output;
         
-        var isConnectionPointInsideLine1 = IsPointOnLine(connectionPoint, line1!, gapDistance);
-        var isConnectionPointInsideLine2 = IsPointOnLine(connectionPoint, line2!, gapDistance);
-        
-        extend1.ExtendPoint = GetClosestEndpoint(wall1, connectionPoint);
-        extend1.Value = gapDistance + GetWallThickness(wall2) / 2 + extend1.ExtendPoint!.DistanceTo(connectionPoint);
-        extend1.Direction = isConnectionPointInsideLine1 
-            ? (connectionPoint - extend1.ExtendPoint).Normalize() 
-            : (extend1.ExtendPoint - connectionPoint).Normalize();
-        extend1.NewLocation = Line.CreateBound(GetFarthestEndpoint(wall1, connectionPoint), extend1.ExtendPoint + extend1.Direction * extend1.Value);
-        
-        
-        extend2.ExtendPoint = GetClosestEndpoint(wall2, connectionPoint);
-        extend2.Value = gapDistance + GetWallThickness(wall1) / 2 + extend2.ExtendPoint!.DistanceTo(connectionPoint);
-        
-        extend2.Direction = isConnectionPointInsideLine2
-            ? (connectionPoint - extend2.ExtendPoint).Normalize() 
-            : (extend2.ExtendPoint - connectionPoint).Normalize();
-        extend2.NewLocation = Line.CreateBound(GetFarthestEndpoint(wall2, connectionPoint), extend2.ExtendPoint + extend2.Direction * extend2.Value);
-        
-        adjustmentData.Add(wall1, extend1);
-        adjustmentData.Add(wall2, extend2);
-        return adjustmentData;
+        Line PushBack(Line centre, double otherHalfThk)
+        {
+            var p0 = centre.GetEndPoint(0);
+            var p1 = centre.GetEndPoint(1);
+            var near = p0.DistanceTo(connectionPoint) <= p1.DistanceTo(connectionPoint) ? p0 : p1;
+            var far  = near.IsAlmostEqualTo(p0) ? p1 : p0;
+
+            var dir = (far - near).Normalize();
+            var newNear = connectionPoint + dir * (gapDistance + otherHalfThk);
+            
+            return Line.CreateBound(far, newNear);
+        }
     }
 }

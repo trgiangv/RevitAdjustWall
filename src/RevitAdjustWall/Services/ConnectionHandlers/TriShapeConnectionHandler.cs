@@ -56,10 +56,9 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
         return distance1 < wall2Thickness || distance2 < wall1Thickness;
     }
     
-
-    public override Dictionary<Wall, WallExtend> CalculateAdjustment(
+    public override Dictionary<Wall, Line> CalculateAdjustment(
         List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance)
     {
-        return new Dictionary<Wall, WallExtend>();
+        return new Dictionary<Wall, Line>();
     }
 }
