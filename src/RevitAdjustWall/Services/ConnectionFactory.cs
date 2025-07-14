@@ -30,7 +30,7 @@ public class ConnectionFactory
         ];
     }
     
-    public WallConnection AnalyzeConnection(List<Wall> walls)
+    public WallConnection AnalyzeConnection(List<WallInfo> walls)
     {
         var connection = new WallConnection();
         XYZ? foundConnectionPoint = null;

@@ -1,23 +1,9 @@
-﻿using System.Linq;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 
 namespace RevitAdjustWall.Extensions;
 
 public static class CurveExtensions
 {
-    /// <summary>
-    ///     Re-directs the line to have the start point before the end point
-    /// </summary>
-    /// <param name="line"></param>
-    /// <returns></returns>
-    public static Line ReDirect(this Line line)
-    {
-        var startPoint = line.GetEndPoint(0);
-        var endPoint = line.GetEndPoint(1);
-        var sort = new[] { startPoint, endPoint }.OrderBy(p => p.X).ThenBy(p => p.Y).ThenBy(p => p.Z).ToArray();
-        return Line.CreateBound(sort[0], sort[1]);
-    }
-    
     /// <summary>
     ///     Returns the intersection point of two lines. The lines are considered to be endless
     /// </summary>
@@ -41,25 +27,5 @@ public static class CurveExtensions
         var y = p1.Y + c * v1.Y;
         p5 = new XYZ(x, y, 0);
         return p5;
-    }
-    
-    /// <summary>
-    ///     Creates an instance of a curve with a new coordinate
-    /// </summary>
-    /// <param name="line">Initial curve</param>
-    /// <param name="value">extend value</param>
-    /// <param name="extendStart">extend start or end</param>
-    /// <returns>The new bound line</returns>
-    /// <exception cref="T:Autodesk.Revit.Exceptions.ArgumentsInconsistentException">
-    ///    Curve length is too small for Revit's tolerance (as identified by Application.ShortCurveTolerance)
-    /// </exception>
-    public static Line Extend(this Line line, double value, bool extendStart = true)
-    {
-        var endPoint0 = line.GetEndPoint(0);
-        var endPoint1 = line.GetEndPoint(1);
-        var direction = line.Direction;
-        return extendStart 
-                ? Line.CreateBound(endPoint0 - direction * value, endPoint1)
-                : Line.CreateBound(endPoint0, endPoint1 + direction * value);
     }
 }

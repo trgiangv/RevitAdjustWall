@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Autodesk.Revit.DB;
-using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Services.ConnectionHandlers;
 
 namespace RevitAdjustWall.Models;
@@ -28,7 +26,7 @@ public class WallConnection
     /// <summary>
     /// Gets or sets the walls involved in this connection
     /// </summary>
-    public List<Wall> ConnectedWalls { get; set; } = [];
+    public List<WallInfo> ConnectedWalls { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the connection point in 3D space
@@ -42,21 +40,19 @@ public class WallConnection
     public bool IsValid()
     {
         var number = ConnectedWalls.Count is >= MinWallsForConnection and <= MaxWallsForConnection;
-        var areLines = ConnectedWalls.All(w => w.Location is LocationCurve { Curve: Line });
         var hasConnectionType = ConnectionType != WallConnectionType.None;
-        Debug.WriteLine($"WallConnection.IsValid: {number} && {areLines} && {hasConnectionType}");
+        Debug.WriteLine($"WallConnection.IsValid: {number} && {hasConnectionType}");
 
-        return number && areLines && hasConnectionType;
+        return number && hasConnectionType;
     }
 
     public void ApplyAdjustments(double gapDistance)
     {
         var wallExtendData =
-            ConnectionHandler!.CalculateAdjustment(ConnectedWalls, ConnectionPoint!, ConnectionType, gapDistance);
+            ConnectionHandler!.CalculateAdjustment(ConnectedWalls, ConnectionPoint!, gapDistance);
         
         foreach (var wallExtend in wallExtendData)
         {
-            Trace.TraceInformation(wallExtend.Key.Name);
             wallExtend.Key.SetLocation(wallExtend.Value);
         }
     }

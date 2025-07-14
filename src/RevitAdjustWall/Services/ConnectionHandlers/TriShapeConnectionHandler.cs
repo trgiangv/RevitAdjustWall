@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Autodesk.Revit.DB;
 using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
@@ -20,7 +19,7 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
     /// Determines if this handler can process the given wall configuration
     /// Tri-Shape connections require exactly 3 walls: 2 inline walls and 1 perpendicular cross wall
     /// </summary>
-    public override bool CanHandle(List<Wall> walls, out XYZ? foundConnectionPoint)
+    public override bool CanHandle(List<WallInfo> walls, out XYZ? foundConnectionPoint)
     {
         foundConnectionPoint = null;
         
@@ -33,14 +32,9 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
         var wall2 = walls[1];
         var wall3 = walls[2];
         
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-        var line3 = GetWallLine(wall3);
-
-        if (line1 == null || line2 == null || line3 == null)
-        {
-            return false;
-        }
+        var line1 = wall1.Line;
+        var line2 = wall2.Line;
+        var line3 = wall3.Line;
         
         var walls12Parallel = AreLinesInline(line1, line2);
         var walls13Parallel = AreLinesInline(line1, line3);
@@ -56,8 +50,8 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
             return false;
         }
 
-        Wall crossWall;
-        Wall inlineWall1;
+        WallInfo crossWall;
+        WallInfo inlineWall1;
 
         if (walls12Parallel)
         {
@@ -75,37 +69,34 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
             crossWall = wall1;
         }
         
-        if (!GetWallLine(crossWall)?.Direction.IsPerpendicular(GetWallLine(inlineWall1)!.Direction) ?? false)
+        if (!AreWallsPerpendicular(inlineWall1, crossWall))
         {
             return false;
         }
         
-        foundConnectionPoint = FindConnectionPoint([inlineWall1, crossWall]);
+        foundConnectionPoint = crossWall.Line.Intersection(inlineWall1.Line);
         return true;
     }
 
-    public override Dictionary<Wall, Line> CalculateAdjustment(
-        List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance)
+    public override Dictionary<WallInfo, Line> CalculateAdjustment(
+        List<WallInfo> walls, XYZ connectionPoint, double gapDistance)
     {
-        var adjustmentData = new Dictionary<Wall, Line>();
+        var adjustmentData = new Dictionary<WallInfo, Line>();
 
         var wall1 = walls[0];
         var wall2 = walls[1];
         var wall3 = walls[2];
 
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-        var line3 = GetWallLine(wall3);
-
-        if (line1 == null || line2 == null || line3 == null)
-            return adjustmentData;
+        var line1 = wall1.Line;
+        var line2 = wall2.Line;
+        var line3 = wall3.Line;
         
-        var walls12Inline = line1.Direction.IsParallel(line2.Direction);
-        var walls13Inline = line1.Direction.IsParallel(line3.Direction);
-        var walls23Inline = line2.Direction.IsParallel(line3.Direction);
+        var walls12Inline = AreWallsParallel(wall1, wall2);
+        var walls13Inline = AreWallsParallel(wall1, wall3);
+        var walls23Inline = AreWallsParallel(wall2, wall3);
 
-        Wall crossWall;
-        Wall inlineWall1, inlineWall2;
+        WallInfo crossWall;
+        WallInfo inlineWall1, inlineWall2;
         Line crossLine, inlineLine1, inlineLine2;
 
         if (walls12Inline)
@@ -127,7 +118,7 @@ public class TriShapeConnectionHandler : BaseConnectionHandler
         {
             return adjustmentData;
         }
-        var largestHalfInlineWallThickness = Math.Max(GetWallThickness(inlineWall1), GetWallThickness(inlineWall2)) / 2.0;
+        var largestHalfInlineWallThickness = Math.Max(inlineWall1.Thickness, inlineWall2.Thickness) / 2.0;
         var adjustedCrossWall = AdjustCrossWallWithGap(crossLine, connectionPoint, gapDistance, largestHalfInlineWallThickness);
         var adjustedInlineWall1 = AdjustInlineWallToGapCenter(inlineLine1, connectionPoint, gapDistance);
         var adjustedInlineWall2 = AdjustInlineWallToGapCenter(inlineLine2, connectionPoint, gapDistance);

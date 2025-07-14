@@ -103,7 +103,20 @@ public class WallAdjustmentViewModel : BaseViewModel
             AdjustWallCommand.ExternalEventHandler?.Raise(uiapp =>
             {
                 var walls = elements.Cast<Wall>().ToList();
-                var connection = _connectionFactory.AnalyzeConnection(walls);
+                if (walls.Count < WallConnection.MinWallsForConnection ||
+                    walls.Count > WallConnection.MaxWallsForConnection)
+                {
+                    TaskDialog.Show("Error", $"Select between {WallConnection.MinWallsForConnection} and {WallConnection.MaxWallsForConnection} walls.");
+                    return;
+                }
+                
+                if (walls.Any(w=>w.Location is not LocationCurve { Curve: Line }))
+                {
+                    TaskDialog.Show("Error", "Only straight walls are supported.");
+                    return;
+                }
+
+                var connection = _connectionFactory.AnalyzeConnection(walls.Select(w => new WallInfo(w)).ToList());
                 Trace.TraceInformation(connection.ConnectionType.ToString());
 
                 if (!connection.IsValid())

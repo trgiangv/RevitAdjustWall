@@ -21,16 +21,15 @@ public interface IConnectionHandler
     /// <param name="walls">The walls at the connection point</param>
     /// <param name="foundConnectionPoint">The connection point</param>
     /// <returns>True if the handler can process the configuration</returns>
-    bool CanHandle(List<Wall> walls, out XYZ? foundConnectionPoint);
+    bool CanHandle(List<WallInfo> walls, out XYZ? foundConnectionPoint);
 
     /// <summary>
     /// Calculates new wall endpoints based on gap distance for this connection type
     /// </summary>
     /// <param name="walls">The walls at the connection point</param>
     /// <param name="connectionPoint">The connection point</param>
-    /// <param name="connectionType">The connection type</param>
     /// <param name="gapDistance">The gap distance in feet</param>
     /// <returns>Dictionary of walls and their new endpoints</returns>
-    Dictionary<Wall, Line> CalculateAdjustment(
-        List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance);
+    Dictionary<WallInfo, Line> CalculateAdjustment(
+        List<WallInfo> walls, XYZ connectionPoint, double gapDistance);
 }

@@ -5,44 +5,6 @@ namespace RevitAdjustWall.Extensions;
 
 public static class XyzExtensions
 {
-    
-    /// <summary>
-    ///     Project a point to a plane
-    /// </summary>
-    /// <param name="xyzPoint">source point</param>
-    /// <param name="plane">plane to project</param>
-    /// <returns>a point projected to the plane</returns>
-    public static XYZ ProjectToPlane(this XYZ xyzPoint, Plane plane)
-    {
-        var vecPoToPlaneOrigin = plane.Origin - xyzPoint;
-        if (Math.Abs(vecPoToPlaneOrigin.DotProduct(plane.Normal)) > 1e-6)
-        {
-            return xyzPoint + plane.Normal * vecPoToPlaneOrigin.DotProduct(plane.Normal);
-        }
-        return xyzPoint;
-    }
-    
-    /// <summary>
-    /// Projects a point to a plane along a specified direction.
-    /// </summary>
-    /// <param name="xyzPoint">The point to project.</param>
-    /// <param name="planeOrigin">The origin of the plane.</param>
-    /// <param name="planeNormal">The normal vector of the plane.</param>
-    /// <param name="projectDirection">The direction along which to project the point.</param>
-    /// <returns>The projected point on the plane.</returns>
-    public static XYZ ProjectToPlane(this XYZ xyzPoint, XYZ planeOrigin, XYZ planeNormal, XYZ projectDirection)
-    {
-         // Calculate the vector from the plane origin to the point
-         var v = xyzPoint - planeOrigin;
-         
-         // Calculate the distance along projectDirection to the plane
-         var distanceAlongVToPlane = -v.DotProduct(planeNormal) / projectDirection.DotProduct(planeNormal);
-         
-         var projectedPoint = xyzPoint + distanceAlongVToPlane * projectDirection;
-         
-         return projectedPoint;
-    }
-    
     /// <summary>
     /// Checks if two vectors are parallel within a specified tolerance.
     /// </summary>

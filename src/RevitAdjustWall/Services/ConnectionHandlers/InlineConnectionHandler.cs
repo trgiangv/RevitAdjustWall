@@ -17,7 +17,7 @@ public class InlineConnectionHandler : BaseConnectionHandler
     /// Determines if this handler can process the given wall configuration
     /// Corner connections require exactly 2 walls that are perpendicular
     /// </summary>
-    public override bool CanHandle(List<Wall> walls, out XYZ? foundConnectionPoint)
+    public override bool CanHandle(List<WallInfo> walls, out XYZ? foundConnectionPoint)
     {
         if (walls.Count != WallConnection.MinWallsForConnection)
         {
@@ -28,58 +28,50 @@ public class InlineConnectionHandler : BaseConnectionHandler
         var wall1 = walls[0];
         var wall2 = walls[1];
         
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
+        var line1 = wall1.Line;
+        var line2 = wall2.Line;
         
 
-        if (!AreLinesInline(line1!, line2!))
+        if (!AreLinesInline(line1, line2))
         {
             foundConnectionPoint = null;
             return false;
         }
         
-        foundConnectionPoint = new List<XYZ> { line1!.GetEndPoint(0), line1!.GetEndPoint(1), line2!.GetEndPoint(0), line2!.GetEndPoint(1) }
+        foundConnectionPoint = new List<XYZ> { line1.GetEndPoint(0), line1.GetEndPoint(1), line2.GetEndPoint(0), line2.GetEndPoint(1) }
             .OrderBy(p=>p.X).ThenBy(p=>p.Y).ThenBy(p=>p.Z)
             .ElementAt(1);
         return true;
     }
     
-    public override Dictionary<Wall, Line> CalculateAdjustment(
-        List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance)
+    public override Dictionary<WallInfo, Line> CalculateAdjustment(
+        List<WallInfo> walls, XYZ connectionPoint, double gapDistance)
     {
-        var adjustmentData = new Dictionary<Wall, Line>();
+        var adjustmentData = new Dictionary<WallInfo, Line>();
 
         var wall1 = walls[0];
         var wall2 = walls[1];
 
-        var line1 = GetWallLine(wall1)!;
-        var line2 = GetWallLine(wall2)!;
-
-        var isConnectionOnLine1 = IsPointOnLine(connectionPoint, line1!);
-        var isConnectionOnLine2 = IsPointOnLine(connectionPoint, line2!);
+        var isConnectionOnLine1 = IsPointOnLine(connectionPoint, wall1.Line);
+        var isConnectionOnLine2 = IsPointOnLine(connectionPoint, wall2.Line);
         
-        Wall wallToAdjust, referenceWall;
-        Line lineToAdjust, referenceLine;
+        WallInfo wallToAdjust, referenceWall;
         switch (isConnectionOnLine1)
         {
             case false when !isConnectionOnLine2:
                 return adjustmentData;
             case true:
                 wallToAdjust = wall2;
-                lineToAdjust = line2;
                 referenceWall = wall1;
-                referenceLine = line1;
                 break;
             default:
                 wallToAdjust = wall1;
-                lineToAdjust = line1;
                 referenceWall = wall2;
-                referenceLine = line2;
                 break;
         }
 
-        adjustmentData[wallToAdjust] = PushBack(lineToAdjust, gapDistance);
-        adjustmentData[referenceWall] = referenceLine;
+        adjustmentData[wallToAdjust] = PushBack(wallToAdjust.Line, gapDistance);
+        adjustmentData[referenceWall] = referenceWall.Line;
         
         return adjustmentData;
         

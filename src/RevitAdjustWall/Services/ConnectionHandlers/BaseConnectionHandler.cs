@@ -25,32 +25,22 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Determines if this handler can process the given wall configuration
     /// </summary>
-    public abstract bool CanHandle(List<Wall> walls, out XYZ? foundConnectionPoint);
+    public abstract bool CanHandle(List<WallInfo> walls, out XYZ? foundConnectionPoint);
 
     /// <summary>
     /// Calculates new wall endpoints based on gap distance for this connection type
     /// </summary>
-    public abstract Dictionary<Wall, Line> CalculateAdjustment(
-        List<Wall> walls, XYZ connectionPoint, WallConnectionType connectionType, double gapDistance);
+    public abstract Dictionary<WallInfo, Line> CalculateAdjustment(
+        List<WallInfo> walls, XYZ connectionPoint, double gapDistance);
     
-    /// <summary>
-    /// Gets the line from a wall's location curve
-    /// </summary>
-    protected static Line? GetWallLine(Wall wall)
-    {
-        return wall.Location is LocationCurve { Curve: Line line } ? line : null;
-    }
 
     /// <summary>
     /// Calculates the angle between two wall directions
     /// </summary>
-    private static double GetAngleBetweenWalls(Wall wall1, Wall wall2)
+    private static double GetAngleBetweenWalls(WallInfo wall1, WallInfo wall2)
     {
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-        
-        if (line1 == null || line2 == null)
-            return 0.0;
+        var line1 = wall1.Line;
+        var line2 = wall2.Line;
 
         return line1.Direction.AngleTo(line2.Direction);
     }
@@ -58,7 +48,7 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Checks if two walls are perpendicular within tolerance
     /// </summary>
-    protected static bool AreWallsPerpendicular(Wall wall1, Wall wall2)
+    protected static bool AreWallsPerpendicular(WallInfo wall1, WallInfo wall2)
     {
         var angle = GetAngleBetweenWalls(wall1, wall2);
         return Math.Abs(angle - PerpendicularAngle) < AngleTolerance;
@@ -67,74 +57,13 @@ public abstract class BaseConnectionHandler : IConnectionHandler
     /// <summary>
     /// Checks if two walls are parallel (or opposite) within tolerance
     /// </summary>
-    protected static bool AreWallsParallel(Wall wall1, Wall wall2)
+    protected static bool AreWallsParallel(WallInfo wall1, WallInfo wall2)
     {
         var angle = GetAngleBetweenWalls(wall1, wall2);
         return Math.Abs(angle - ParallelAngle) < AngleTolerance ||
                Math.Abs(angle - OppositeAngle) < AngleTolerance;
     }
     
-    /// <summary>
-    /// Finds all potential connection points from walls
-    /// </summary>
-    public static XYZ? FindConnectionPoint(List<Wall> walls)
-    {
-        if (walls.Count is < WallConnection.MinWallsForConnection or > WallConnection.MaxWallsForConnection)
-            return null;
-
-        return walls.Count switch
-        {
-            WallConnection.MinWallsForConnection => FindConnection2Walls(walls[0], walls[1]),
-            WallConnection.MaxWallsForConnection => FindConnection3Walls(walls[0], walls[1], walls[2]),
-            _ => null
-        };
-    }
-
-    private static XYZ? FindConnection2Walls(Wall wall1, Wall wall2)
-    {
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-        
-        if (line1 == null || line2 == null)
-            return null;
-
-        return line1.Intersection(line2);
-    }
-
-    private static XYZ? FindConnection3Walls(Wall wall1, Wall wall2, Wall wall3)
-    {
-        var line1 = GetWallLine(wall1);
-        var line2 = GetWallLine(wall2);
-        var line3 = GetWallLine(wall3);
-
-        if (line1 == null || line2 == null || line3 == null)
-            return null;
-        
-        
-        var line1Line2Collinear = AreLinesInline(line1, line2);
-        var line1Line3Collinear = AreLinesInline(line1, line3);
-        var line2Line3Collinear = AreLinesInline(line2, line3);
-
-        // Count collinear pairs - should be exactly 1 for valid Tri-Shape
-        var collinearPairCount = (line1Line2Collinear ? 1 : 0) +
-                                (line1Line3Collinear ? 1 : 0) +
-                                (line2Line3Collinear ? 1 : 0);
-
-        if (collinearPairCount != 1)
-            return null;
-        
-        if (line1Line2Collinear)
-        {
-            return line3.Intersection(line1) ?? line3.Intersection(line2);
-        }
-
-        if (line1Line3Collinear)
-        {
-            return line2.Intersection(line1) ?? line2.Intersection(line3);
-        }
-        
-        return line1.Intersection(line2) ?? line1.Intersection(line3);
-    }
 
     protected static bool AreLinesInline(Line line1, Line line2)
     {
@@ -182,13 +111,5 @@ public abstract class BaseConnectionHandler : IConnectionHandler
         // Check if point lies within the segment bounds using dot product
         var dot = pointVec.DotProduct(lineVec);
         return !(dot < -tolerance) && !(dot > lineVec.DotProduct(lineVec) + tolerance);
-    }
-    
-    /// <summary>
-    /// Gets the wall thickness at the connection point
-    /// </summary>
-    protected static double GetWallThickness(Wall wall)
-    {
-        return wall.Width;
     }
 }

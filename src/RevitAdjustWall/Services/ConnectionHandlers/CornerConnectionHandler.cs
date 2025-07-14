@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Autodesk.Revit.DB;
 using RevitAdjustWall.Extensions;
 using RevitAdjustWall.Models;
@@ -19,7 +18,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
     /// Determines if this handler can process the given wall configuration
     /// Corner connections require exactly 2 walls that are perpendicular
     /// </summary>
-    public override bool CanHandle(List<Wall> walls, out XYZ? foundConnectionPoint)
+    public override bool CanHandle(List<WallInfo> walls, out XYZ? foundConnectionPoint)
     {
         if (walls.Count != WallConnection.MinWallsForConnection)
         {
@@ -36,13 +35,10 @@ public class CornerConnectionHandler : BaseConnectionHandler
             return false;
         }
         
-        var line1 = GetWallLine(wall1)!;
-        var line2 = GetWallLine(wall2)!;
-        
-        var wall1Thickness = GetWallThickness(wall1);
-        var wall2Thickness = GetWallThickness(wall2);
-        
-        var connectionPoint = FindConnectionPoint(walls)!;
+        var line1 = wall1.Line;
+        var line2 = wall2.Line;
+
+        var connectionPoint = line1.Intersection(line2)!;
         var nearestEndpoint1 = GetClosestEndpoint(line1, connectionPoint)!;
         var nearestEndpoint2 = GetClosestEndpoint(line2, connectionPoint)!;
         
@@ -57,7 +53,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall1Valid;
         if (isConnectionPointInsideLine1)
         {
-            isWall1Valid = Math.Round(wall2Thickness / 2 - distance1) > 1e-6;
+            isWall1Valid = Math.Round(wall2.HalfThickness - distance1) > 1e-6;
         }
         else
         {
@@ -67,7 +63,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall2Valid;
         if (isConnectionPointInsideLine2)
         {
-            isWall2Valid = Math.Round(wall1Thickness / 2 - distance2) > 1e-6;
+            isWall2Valid = Math.Round(wall1.HalfThickness - distance2) > 1e-6;
         }
         else
         {
@@ -78,24 +74,22 @@ public class CornerConnectionHandler : BaseConnectionHandler
         return isWall1Valid && isWall2Valid;
     }
     
-    public override Dictionary<Wall, Line> CalculateAdjustment(
-        List<Wall> walls,
+    public override Dictionary<WallInfo, Line> CalculateAdjustment(
+        List<WallInfo> walls,
         XYZ connectionPoint,
-        WallConnectionType connectionType,
         double gapDistance
     )
     {
-        var output = new Dictionary<Wall, Line>();
+        var output = new Dictionary<WallInfo, Line>();
 
         var w1 = walls[0];
         var w2 = walls[1];
 
-        var c1 = GetWallLine(w1);
-        var c2 = GetWallLine(w2);
-        if (c1 == null || c2 == null) return output;
+        var c1 = w1.Line;
+        var c2 = w2.Line;
         
-        var t1Half = GetWallThickness(w1) / 2.0;
-        var t2Half = GetWallThickness(w2) / 2.0;
+        var t1Half = w1.HalfThickness;
+        var t2Half = w2.HalfThickness;
 
         output[w1] = PushBack(c1, - t2Half - gapDistance);
         output[w2] = PushBack(c2, t1Half);

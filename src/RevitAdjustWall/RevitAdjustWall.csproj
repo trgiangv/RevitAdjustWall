@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AssemblyTitle>RevitAdjustWall</AssemblyTitle>
@@ -11,6 +11,7 @@
     <AssemblyCompany>GiangVu</AssemblyCompany>
     <AssemblyProduct>RevitAdjustWall</AssemblyProduct>
     <AssemblyCopyright>Copyright © 2025</AssemblyCopyright>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,9 +32,22 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <DefineConstants>$(DefineConstants);NET48</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <DefineConstants>$(DefineConstants);NET8</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2025.*" />
+    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2024.*" Condition="'$(TargetFramework)' == 'net48'" />
+    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2025.*" Condition="'$(TargetFramework)' == 'net8.0-windows'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Extensions\WallExtensions.cs" />
   </ItemGroup>
 
 </Project>
