@@ -103,8 +103,7 @@ public class WallAdjustmentViewModel : BaseViewModel
             AdjustWallCommand.ExternalEventHandler?.Raise(uiapp =>
             {
                 var walls = elements.Cast<Wall>().ToList();
-                if (walls.Count < WallConnection.MinWallsForConnection ||
-                    walls.Count > WallConnection.MaxWallsForConnection)
+                if (walls.Count is < WallConnection.MinWallsForConnection or > WallConnection.MaxWallsForConnection)
                 {
                     TaskDialog.Show("Error", $"Select between {WallConnection.MinWallsForConnection} and {WallConnection.MaxWallsForConnection} walls.");
                     return;

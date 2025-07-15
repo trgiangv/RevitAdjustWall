@@ -53,7 +53,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall1Valid;
         if (isConnectionPointInsideLine1)
         {
-            isWall1Valid = Math.Round(wall2.HalfThickness - distance1) > 1e-6;
+            isWall1Valid = Math.Round(wall2.HalfThickness - distance1) >= 0;
         }
         else
         {
@@ -63,7 +63,7 @@ public class CornerConnectionHandler : BaseConnectionHandler
         bool isWall2Valid;
         if (isConnectionPointInsideLine2)
         {
-            isWall2Valid = Math.Round(wall1.HalfThickness - distance2) > 1e-6;
+            isWall2Valid = Math.Round(wall1.HalfThickness - distance2) >= 0;
         }
         else
         {
